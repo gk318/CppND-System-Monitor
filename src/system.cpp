@@ -20,8 +20,12 @@ Processor& System::Cpu() { return cpu_; }
 
 // TODO: Return a container composed of the system's processes
 vector<Process>& System::Processes() {
-    
-     return processes_;
+    vector<int> pids = LinuxParser::Pids();
+    for (int idx : pids) {
+        Process process(idx);
+        this->processes_.push_back(process);        
+    }
+     return this->processes_;
 }
 
 // DONE: Return the system's kernel identifier (string)

@@ -13,18 +13,23 @@ using std::to_string;
 using std::vector;
 
 //Constructor
-Process::Process() {
-    Pid();
+Process::Process(int pid) {
+    this->process_id = pid;
 }
 
 // TODO: Return this process's ID
 int Process::Pid() {
-    //this->process_id =;
-    return 0; 
+    return this->process_id; 
 }
 
 // TODO: Return this process's CPU utilization
-float Process::CpuUtilization() { return 0; }
+float Process::CpuUtilization() {
+    vector<string> time_vector = LinuxParser::CpuUtilization(this->process_id);
+    float total_time = (std::stof(time_vector[14]) + std::stof(time_vector[15]) + std::stof(time_vector[16]) +
+        std::stof(time_vector[17])) / sysconf(_SC_CLK_TCK);
+    float elapsed_time = this->UpTime() - std::stof(time_vector[22]) / sysconf(_SC_CLK_TCK);
+    return 100*(total_time / elapsed_time);
+}
 
 // DONE: Return the command that generated this process
 string Process::Command() {

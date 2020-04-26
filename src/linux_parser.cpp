@@ -237,7 +237,7 @@ string LinuxParser::User(int pid) {
   int userID = std::stoi(Uid(pid));
   string username, x, uid;
   string line;
-  std::ifstream stream(kProcDirectory + kPasswordPath);
+  std::ifstream stream(kPasswordPath);
   if (stream.is_open()) {
     while (std::getline(stream, line)) {
       std::replace(line.begin(), line.end(), ':', ' ');

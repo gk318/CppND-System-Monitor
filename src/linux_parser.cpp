@@ -80,16 +80,14 @@ float LinuxParser::MemoryUtilization() {
       std::istringstream linestream(line);
       while (linestream >> key >> value) {
         if (key == "MemTotal") {
-          mem_total = std::stof(value);
+          try {
+            mem_total = std::stof(value);
+          } catch (...) {}
         }
         else if (key == "MemFree") {
-          mem_free = std::stof(value);
-        }
-        else if (key == "MemAvailable") {
-          mem_available = std::stof(value);
-        }
-        else if (key == "Buffers") {
-          buffers = std::stof(value);
+          try {
+            mem_free = std::stof(value);
+          } catch (...) {}
         }
         else {
           continue;
@@ -110,7 +108,11 @@ long LinuxParser::UpTime() {
     std::istringstream linestream(line);
     while(linestream >> system_time >> idle_time) {
       //std::cout << system_time <<"\n";
-      return std::stol(system_time);
+      try {
+        return std::stol(system_time);
+      } catch (...) {
+        return 0;
+      }
     }
   }
   return 0;
@@ -159,8 +161,11 @@ int LinuxParser::TotalProcesses() {
       std::istringstream linestream(line);
       while(linestream >> title >> total_processes) { //TODO: Remove while
         if (title == "processes") {
-          //std::cout << "Here4" ;
-          return std::stoi(total_processes);
+          try {
+            return std::stoi(total_processes);
+          } catch (const std::invalid_argument& arg) {
+            return 0;
+          }       
         }
       }
     }
@@ -178,8 +183,11 @@ int LinuxParser::RunningProcesses() {
       std::istringstream linestream(line);
       linestream >> title >> running_processes;
       if (title == "procs_running") {
-        //std::cout << "Here3" ;
-        return std::stoi(running_processes);
+        try {
+          return std::stoi(running_processes);
+        } catch (const std::invalid_argument& arg) {
+          return 0;
+        }
       }
     }
   }
@@ -196,7 +204,7 @@ string LinuxParser::Command(int pid) {
       return line;
     }
   }
-  return "Error in LinuxParser::Command";
+  return "";
 }
 
 // DONE: Read and return the memory used by a process
@@ -211,19 +219,23 @@ string LinuxParser::Ram(int pid) {
       std::istringstream linestream(line);
       while (linestream >> title >> ram) {
         if (title == "VmSize") {
-          return ram;
+          try {
+            return to_string(std::stoi(ram)/1024);
+          } catch (const std::invalid_argument& arg) {
+            return "";
+          }
         }
       }
     }
   }
   
-  return "Error in LinuxParser::Ram";
+  return "";
 }
 
 // DONE: Read and return the user ID associated with a process
 // DONE REMOVE: [[maybe_unused]] once you define the function
 string LinuxParser::Uid(int pid) {
-  string title, uid1, uid2, uid3, uid4;
+  string title, uid;
   string line;
   std::ifstream stream(kProcDirectory + "/" + std::to_string(pid) + kStatusFilename);
   if (stream.is_open()) {
@@ -232,22 +244,26 @@ string LinuxParser::Uid(int pid) {
       std::istringstream linestream(line);
       while (linestream >> title) {
         if (title == "Uid") {
-          linestream >> uid1;
-          return uid1;
+          linestream >> uid;
+          //if (uid, isdigit) {
+            return uid;
+          //}
         }
       }
     }
   }
-  std::cout << pid <<"\n";
-  return uid1;
+  return uid;
 }
 
 // DONE: Read and return the user associated with a process
 // DONE REMOVE: [[maybe_unused]] once you define the function
 string LinuxParser::User(int pid) {
-  //std::cout << time_vector.size() << "\n";
-  //std::cout << "Here8" << Uid(pid) << "\n";
-  int userID = std::stoi(Uid(pid));
+  int userID {0};
+  try {
+    userID = std::stoi(Uid(pid));
+  } catch (...) {
+      return "";
+  }
   string username, x, uid;
   string line;
   std::ifstream stream(kPasswordPath);
@@ -256,10 +272,13 @@ string LinuxParser::User(int pid) {
       std::replace(line.begin(), line.end(), ':', ' ');
       std::replace(line.begin(), line.end(), ',', ' ');
       std::istringstream linestream(line);
-      while (linestream >> username >> x >> uid) {
-        //std::cout << "Here 1\n";
-        if (std::stoi(uid) == userID) {
-          return username;
+      if (linestream >> username >> x >> uid) {
+        try {
+          if (std::stoi(uid) == userID) {
+            return username;
+         } 
+        } catch (const std::invalid_argument& arg) {
+          continue;
         }
       }
     }
@@ -281,7 +300,11 @@ long LinuxParser::UpTime(int pid) {
       }
     }
   }
-  return std::stol(uptime);
+  try {
+      return std::stol(uptime);
+  } catch (const std::invalid_argument& arg) {
+      return 0;
+  }
 }
 
 vector<string> LinuxParser::CpuUtilization(int pid) {
@@ -297,9 +320,6 @@ vector<string> LinuxParser::CpuUtilization(int pid) {
       }
     }
   }
-  /*for (string i : time_vector) {
-    std::cout << i;
-  }
-  std::cout << "\n";*/
+
   return time_vector;
 }

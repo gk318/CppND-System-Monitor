@@ -12,5 +12,5 @@ float Processor::Utilization() {
         std::stof(time_vector[2]) + std::stof(time_vector[5]) +
         std::stof(time_vector[6]) + std::stof(time_vector[7]);
     float total = idle + non_idle;
-    return (total - idle)/total;
+    return non_idle/total;
 }

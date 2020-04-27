@@ -4,6 +4,7 @@
 #include <vector>
 #include "linux_parser.h"
 #include <stdlib.h>     /* strtof */
+#include <iostream>
 
 using std::stof;
 using std::string;
@@ -58,6 +59,7 @@ vector<int> LinuxParser::Pids() {
       // Is every character of the name a digit?
       string filename(file->d_name);
       if (std::all_of(filename.begin(), filename.end(), isdigit)) {
+        //std::cout << "Here2\n";
         int pid = stoi(filename);
         pids.push_back(pid);
       }
@@ -95,7 +97,7 @@ float LinuxParser::MemoryUtilization() {
       }
     }
   }
-  return (mem_total - mem_free)/mem_total; //CHECK
+  return (mem_total - mem_free)/mem_total;
 }
 
 // DONE: Read and return the system uptime
@@ -107,6 +109,7 @@ long LinuxParser::UpTime() {
     std::getline(stream, line);
     std::istringstream linestream(line);
     while(linestream >> system_time >> idle_time) {
+      //std::cout << system_time <<"\n";
       return std::stol(system_time);
     }
   }
@@ -136,8 +139,11 @@ vector<string> LinuxParser::CpuUtilization() {
     std::getline(stream, line);
     std::istringstream linestream(line);
     linestream >> title;
-    while(linestream >> time) {
-      time_vector.push_back(time);
+    if (title == "cpu") {
+      while(linestream >> time) {
+        time_vector.push_back(time);
+      }
+        return time_vector;
     }
   }
   return time_vector;
@@ -151,8 +157,9 @@ int LinuxParser::TotalProcesses() {
   if (stream.is_open()) {
     while(std::getline(stream, line)) {
       std::istringstream linestream(line);
-      while(linestream >> title >> total_processes) {
+      while(linestream >> title >> total_processes) { //TODO: Remove while
         if (title == "processes") {
+          //std::cout << "Here4" ;
           return std::stoi(total_processes);
         }
       }
@@ -171,6 +178,7 @@ int LinuxParser::RunningProcesses() {
       std::istringstream linestream(line);
       linestream >> title >> running_processes;
       if (title == "procs_running") {
+        //std::cout << "Here3" ;
         return std::stoi(running_processes);
       }
     }
@@ -208,6 +216,7 @@ string LinuxParser::Ram(int pid) {
       }
     }
   }
+  
   return "Error in LinuxParser::Ram";
 }
 
@@ -221,19 +230,23 @@ string LinuxParser::Uid(int pid) {
     while (std::getline(stream, line)) {
       std::replace(line.begin(), line.end(), ':', ' ');
       std::istringstream linestream(line);
-      while (linestream >> title >> uid1 >> uid2 >> uid3 >> uid4) {
+      while (linestream >> title) {
         if (title == "Uid") {
+          linestream >> uid1;
           return uid1;
         }
       }
     }
   }
-  return "Error in LinuxParser::Uid";
+  std::cout << pid <<"\n";
+  return uid1;
 }
 
 // DONE: Read and return the user associated with a process
 // DONE REMOVE: [[maybe_unused]] once you define the function
 string LinuxParser::User(int pid) {
+  //std::cout << time_vector.size() << "\n";
+  //std::cout << "Here8" << Uid(pid) << "\n";
   int userID = std::stoi(Uid(pid));
   string username, x, uid;
   string line;
@@ -244,13 +257,14 @@ string LinuxParser::User(int pid) {
       std::replace(line.begin(), line.end(), ',', ' ');
       std::istringstream linestream(line);
       while (linestream >> username >> x >> uid) {
+        //std::cout << "Here 1\n";
         if (std::stoi(uid) == userID) {
           return username;
         }
       }
     }
   }
-  return "Error in LinuxParser::User(pid)";
+  return "";
 }
 
 // DONE: Read and return the uptime of a process
@@ -276,12 +290,16 @@ vector<string> LinuxParser::CpuUtilization(int pid) {
   string line;
   std::ifstream stream(kProcDirectory + "/" + std::to_string(pid) + kStatFilename);
   if (stream.is_open()) {
-    std::getline(stream, line);
-    std::istringstream linestream(line);
-    linestream >> title;
-    while(linestream >> time) {
-      time_vector.push_back(time);
+    while(std::getline(stream, line)) {
+      std::istringstream linestream(line);
+      while(linestream >> time) {
+        time_vector.push_back(time);
+      }
     }
   }
+  /*for (string i : time_vector) {
+    std::cout << i;
+  }
+  std::cout << "\n";*/
   return time_vector;
 }

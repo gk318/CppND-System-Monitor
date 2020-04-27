@@ -15,17 +15,20 @@ using std::size_t;
 using std::string;
 using std::vector;
 
-// TODO: Return the system's CPU
-Processor& System::Cpu() { return cpu_; }
+// DONE: Return the system's CPU
+Processor& System::Cpu() {
+    return cpu_;
+}
 
-// TODO: Return a container composed of the system's processes
+// DONE: Return a container composed of the system's processes
 vector<Process>& System::Processes() {
     vector<int> pids = LinuxParser::Pids();
     for (int idx : pids) {
         Process process(idx);
         this->processes_.push_back(process);        
     }
-     return this->processes_;
+    std::sort(this->processes_.begin(), this->processes_.end());
+    return this->processes_;
 }
 
 // DONE: Return the system's kernel identifier (string)

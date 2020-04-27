@@ -22,42 +22,42 @@ Process::Process(int pid) : process_id_(pid) {
     SetUptime();
 }
 
-// DONE: Return this process's ID
+// Return this process's ID
 int Process::Pid() {
     return this->process_id_;    
 }
 
-// DONE: Return this process's CPU utilization
+// Return this process's CPU utilization
 float Process::CpuUtilization() {
     return this->cpu_utilization_;
 }
 
-// DONE: Return the command that generated this process
+// Return the command that generated this process
 string Process::Command() {
     return this->command_;
 }
 
-// DONE: Return this process's memory utilization
+// Return this process's memory utilization
 string Process::Ram() {
     return this->ram_;
 }
 
-// DONE: Return the user (name) that generated this process
+// Return the user (name) that generated this process
 string Process::User() {
-    //int process_id = Pid();
     return this->user_;
  }
 
-// DONE: Return the age of this process (in seconds)
+// Return the age of this process (in seconds)
 long int Process::UpTime() {
     return this->uptime_;
 }
 
-// TODO: Overload the "less than" comparison operator for Process objects
-// REMOVE: [[maybe_unused]] once you define the function
+// Overload the "less than" comparison operator for Process objects
 bool Process::operator<(Process const& a) const {
     return this->cpu_utilization_ > a.cpu_utilization_;
 }
+
+// Setter functions
 
 void Process::SetCpuUtilization() {
     vector<string> time_vector = LinuxParser::CpuUtilization(this->process_id_);
@@ -66,10 +66,14 @@ void Process::SetCpuUtilization() {
     try {
         total_time = std::stof(time_vector[13]) + std::stof(time_vector[14]) + std::stof(time_vector[15]) +
             std::stof(time_vector[16]);
-    } catch (...) {}
+    } catch (...) {
+        this->cpu_utilization_ = 0;
+    }
     try {
         elapsed_time = (LinuxParser::UpTime()) - (std::stof(time_vector[21]) / sysconf(_SC_CLK_TCK));
-    } catch (...) {}
+    } catch (...) {
+        this->cpu_utilization_ = 0;
+    }
     total_time = total_time/sysconf(_SC_CLK_TCK);
     this->cpu_utilization_ = total_time / elapsed_time;
 }

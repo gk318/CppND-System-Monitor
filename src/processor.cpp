@@ -4,7 +4,7 @@
 #include "linux_parser.h"
 
 
-// DONE BONUS: Return the aggregate CPU utilization
+// Return the aggregate CPU utilization
 float Processor::Utilization() {
     std::vector<std::string> time_vector = LinuxParser::CpuUtilization();
     float idle {0}, non_idle {0};
